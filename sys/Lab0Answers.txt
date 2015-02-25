@@ -1,0 +1,103 @@
+Question 1) Assuming the XINU text begins at address 0x0, draw a rough diagram of XINU's memory layout with addresses derived from your experimental measurements. Include the information you uncovered from running your version of printsegaddress() and printprocstks()
+Answer:
+---------------------------
+		FREE
+---------------------------Base Pointer : 0x00fffffc
+
+(PROCESS : prnull)
+
+		----------------->Stack Pointer : 0x00ffff3c
+		
+		----------------->Limit 0x00fff000
+		
+---------------------------Base Pointer : 0x00ffeff8
+			
+		
+ stack 4K (PROCESS : main)
+		
+		----------------->Stack Pointer : 0x00ffefa0
+		
+---------------------------Limit : 0x00ffdffc
+		
+  	   heap
+		
+		
+---------------------------end : 0x00015e78
+		
+		
+   	   bss
+		
+		
+---------------------------edata : 0x0000b320
+		
+		
+       data
+		
+		
+---------------------------etext : 0x00008b3a
+		
+   	   text
+		
+---------------------------start : 0
+
+Question 2)What is the difference in stack top address before and after calling printtos()? Draw a diagram to illustrate what are the contents of the items pushed into the stack between these two time points.
+Answer: 
+The address at the top of run-time stack just before calling printtos() is 0x00ffefc0
+The address at the top of run-time stack just after calling printtos() is 0x00ffefb8
+This is because when the printtos() function is called, the contents of the return address and base pointer of main are both pushed onto the stack.
+
+ ________  00ffefb8 -> top of stack after printtos() function
+|        |
+|  EBP	 | 
+|________|
+|return  | 
+|address |
+| ______ |  00ffefc0 -> top of stack before printtos() call
+
+
+
+Question 3)Which byte order is adopted in the host machine that we are using? How did you find out?
+Answer:
+The byte order of the host machine is LITTLE_ENDIAN.
+Wrote below code in the main file to know the byte order of the host machine. 
+If the first byte of the integer is 0x01h, then the system is LITTLE_ENDIAN and if it is 0x00h then the system is BIG_ENDIAN. 
+Here the first byte is 0x01h which means the host machine is LITTLE_ENDIAN.
+
+short int temp = 0x0001;
+char *byte = (char *) &temp;
+if(byte[0])
+    kprintf("\nByte order is LITTLE_ENDIAN\n");
+else
+    kprtinf("\nByte order is BIG_ENDIAN\n"); 
+    
+    
+Question 4) Briefly describe the mov, push, pusha, pop, and popa instructions in the x86.
+Answer:
+
+mov instruction: 
+Syntax: mov source, destination
+The mov instruction copies the data referred to by its first operand into the location referred to by its second operand. 
+First operand can be register contents, memory contents or constant value. 
+Second operand can be a register or memory. 
+Direct moving from memory to memory is not possible.
+Example: mov %esp,%ebp     #Move contents of esp to ebp.
+
+push instruction:
+Syntax: push source
+The push instruction puts its operand onto the top of the stack in the memory. First the esp(stack pointer) is decremented by 4, then the operand is put location specified by esp.
+Example: push %eax         #Pushes eax on the top of the stack
+
+pusha instruction:
+The push instruction is used to push all 16-bit general-puropose registers with only one instruction. The registers are pushed in the following order: AX, CX, DX, BX, SP, BP, SI, and DI.
+
+pop instruction:
+Syntax: pop destination
+The pop instruction removes the data element from the top of the stack into the specified operand(register or memory location). First the 4 bytes located at the esp is moved to the operand and then esp is incremented by 4.
+Example: pop %edi          #Pop the top element of the stack into EDI
+
+popa instruction:
+The popa instruction is used to pop all 16-bit general-puropose registers with only one instruction. The registers are popped in the following order: DI, SI, BP, SP, BX, DX, CX and AX.
+
+Question 5)n a stack frame, local variables are stored below the top of the stack. In task 3, does your result show all the local variables declared in your printtos function? If not, can you explain that? (hint: try to disable the compiler optimization by specifing -O0 in your Makefile)
+Answer:
+No local variables which are used in printtos() function show up since compiler optimization is enabled. Local variables declared are not shown because compiler optimization moves them into the various registers.
